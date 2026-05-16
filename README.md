@@ -1,93 +1,73 @@
-# SocityManagement
+## Laravel-Ready-V2
+
+## Checklist
+
+Mark Tasks as ✅ once done.
+
+- Task 1
+- Task 1
+- Task 1
+- Task 1
 
 
+## Things to keep in mind when creating a project from Laravel-Ready-V2
 
-## Getting started
+1. SuperAdmin will be only one user, his role and permission wont be available to update anywhere in the system. SuperAdmin's role and permission can only be changed in "PermissionSeeder.php" file.
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+2. All the users except staff memebers of a client will be called "Users", User role has been created for them in "PermissionSeeder.php" file. For example, if client has acccount and sales people in his team, then they will be called as Staff Members, and their role can only be created by SuperAdmin in roles & permission module (not in PermissionSeeder.php file). If there are multiple type of "Users" who going to use the frontend then those users role will be named as "User-role". For Example, if there are three types of users who is going to access frontend system. User roles are Customers, Sellers, Broker, then in this case three user roles will be created in "PermissionSeeder.php" file i.e. "User", "User-Seller", "User-Broker".
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+3. The roles, which we are going to create in "PermissionSeeder.php" wont be / should not be available in the backend roles. For ex. SuperAdmin, User, User-Seller etc. If you think this is logical, because permissions are fixed for these roles, but not for the roles which are going to be created in roles & permission module.
 
-## Add your files
+4. Menu will be in a seperate blade file in layout folder. This file will be called "navbar.blade.php". . This will keep main layout file clean.
 
-* [Create](https://docs.gitlab.com/user/project/repository/web_editor/#create-a-file) or [upload](https://docs.gitlab.com/user/project/repository/web_editor/#upload-a-file) files
-* [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
+5. All the modals which are there in layout file will be and should be kept in "modals.blade.php", this file is also in layout folder. Jquery for all these modals will be kept there. This will keep main layout file clean. 
 
+6. In all blade files, if you are printing any varibale value, then please add space after braces start and before braces end, this will keep blade much more in readable format. For ex. {{$name}} instead write like this {{ $name }}
+
+7. Indentation to be kept as 4 spaces and code formating should be there on all the pages. This is must for everone. This shows how healthy our code practices are.
+
+8. Write meaningfull names for variables. I have observed some developers give name to a varibale on the basis of its future version. For example : when calculating average.
 ```
-cd existing_repo
-git remote add origin https://gitlab.com/technicul-nikhil/SocityManagement.git
-git branch -M main
-git push -uf origin main
+$a = 100;
+$b = 200;
+$average = $a + $b;
+$average = $average/2;
+```
+Instead write like this,
+```
+$a = 100;
+$b = 200;
+$total = $a + $b;
+$average = $total/2;
+```
+Stupid example, but you get my point.
+
+9. In every controller we have a "data" function. Please make sure that the sequence columns in this function is same as there is in "index.blade.php" table. Also make sure the seuqence of "rawColumns" should also be same. Actions, status, etc should be at the end (These are exceptions).
+
+10. All developer defined variable name in PHP & JQuery should be in camelCase. For ex.
+```
+$user_id
+//to
+$userId
+
+$user_roles
+//to
+$userRoles
+
+
+var user_id
+to
+var userId
 ```
 
-## Integrate with your tools
+11. In HTML all the id's should be in camelCase, class should have hyphens/dashes
+```
+id="user_id"
+to
+id="userId"
 
-* [Set up project integrations](https://gitlab.com/technicul-nikhil/SocityManagement/-/settings/integrations)
+class="user_id"
+to
+class="user-id"
+```
 
-## Collaborate with your team
-
-* [Invite team members and collaborators](https://docs.gitlab.com/user/project/members/)
-* [Create a new merge request](https://docs.gitlab.com/user/project/merge_requests/creating_merge_requests/)
-* [Automatically close issues from merge requests](https://docs.gitlab.com/user/project/issues/managing_issues/#closing-issues-automatically)
-* [Enable merge request approvals](https://docs.gitlab.com/user/project/merge_requests/approvals/)
-* [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
-
-## Test and Deploy
-
-Use the built-in continuous integration in GitLab.
-
-* [Get started with GitLab CI/CD](https://docs.gitlab.com/ci/quick_start/)
-* [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/user/application_security/sast/)
-* [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/topics/autodevops/requirements/)
-* [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/user/clusters/agent/)
-* [Set up protected environments](https://docs.gitlab.com/ci/environments/protected_environments/)
-
-***
-
-# Editing this README
-
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
-
-## Suggestions for a good README
-
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
-
-## Name
-Choose a self-explaining name for your project.
-
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
-
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
-
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
-
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
-
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
-
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
-
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
-
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
-
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
-
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
-
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
-
-## License
-For open source projects, say how it is licensed.
-
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
