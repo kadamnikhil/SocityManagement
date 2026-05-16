@@ -1,3 +1,5 @@
+<!-- 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 -->
+
 ## Laravel-Ready-V2
 
 ## Checklist
