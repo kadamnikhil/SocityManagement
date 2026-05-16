@@ -7,8 +7,12 @@ use App\Models\ExtraActivity;
 use App\Models\ExtraActivityPayment;
 use App\Models\SocietyFlat;
 use App\Models\SocietyWing;
+use Dompdf\Dompdf;
+use Dompdf\Options;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
@@ -109,21 +113,7 @@ class ExtraActivityController extends Controller
 
         $this->syncMissingFlatRows($extraActivity);
 
-        $query = ExtraActivityPayment::query()
-            ->where('extra_activity_id', $extraActivity->id)
-            ->join('society_flats', 'society_flats.id', '=', 'extra_activity_payments.society_flat_id')
-            ->join('society_wings', 'society_wings.id', '=', 'society_flats.society_wing_id')
-            ->with('flat.wing:id,code,label')
-            ->orderBy('society_wings.sort_order')
-            ->orderBy('society_flats.floor_number')
-            ->orderBy('society_flats.flat_index')
-            ->select('extra_activity_payments.*');
-
-        if ($status !== 'all') {
-            $query->where('extra_activity_payments.status', $status);
-        }
-
-        $payments = $query->get();
+        $payments = $this->extraActivityPaymentsQuery($extraActivity, $status)->get();
         $stats = $this->activityStats($extraActivity);
         $wings = SocietyWing::query()
             ->where('user_id', $extraActivity->user_id)
@@ -135,6 +125,43 @@ class ExtraActivityController extends Controller
             ->map(fn ($wingPayments) => $wingPayments->groupBy(fn ($payment) => (int) optional($payment->flat)->floor_number)->sortKeysDesc());
 
         return view('Admin.ExtraActivities.show', compact('extraActivity', 'payments', 'paymentsByWingFloor', 'stats', 'status', 'wings'));
+    }
+
+    public function downloadListPdf(Request $request, ExtraActivity $extraActivity, string $list): Response
+    {
+        $this->authorizeActivity($request, $extraActivity);
+        if (! in_array($list, [ExtraActivityPayment::STATUS_PAID, ExtraActivityPayment::STATUS_UNPAID], true)) {
+            abort(404);
+        }
+
+        $this->syncMissingFlatRows($extraActivity);
+        $payments = $this->extraActivityPaymentsQuery($extraActivity, $list)->get();
+        $listLabel = $list === ExtraActivityPayment::STATUS_PAID ? 'Paid' : 'Unpaid';
+
+        $extraActivity->loadMissing('user');
+        $societyName = trim((string) ($extraActivity->user?->society_name ?? $request->user()->society_name));
+
+        $html = view('Admin.ExtraActivities.pdf-list', [
+            'extraActivity' => $extraActivity,
+            'payments' => $payments,
+            'listLabel' => $listLabel,
+            'societyName' => $societyName,
+            'brandName' => 'Society Management System',
+        ])->render();
+
+        $options = new Options;
+        $options->set('isRemoteEnabled', false);
+        $dompdf = new Dompdf($options);
+        $dompdf->loadHtml($html, 'UTF-8');
+        $dompdf->setPaper('A4', 'landscape');
+        $dompdf->render();
+
+        $filename = sprintf('extra-activity-%d-%s.pdf', $extraActivity->id, $list);
+
+        return response($dompdf->output(), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
+        ]);
     }
 
     public function updateStatus(Request $request, ExtraActivity $extraActivity, ExtraActivityPayment $payment): RedirectResponse
@@ -201,6 +228,25 @@ class ExtraActivityController extends Controller
         });
 
         return redirect()->route('admin.extra-activities.index')->with('success', 'Extra activity '.$title.' deleted.');
+    }
+
+    private function extraActivityPaymentsQuery(ExtraActivity $activity, string $status): Builder
+    {
+        $query = ExtraActivityPayment::query()
+            ->where('extra_activity_id', $activity->id)
+            ->join('society_flats', 'society_flats.id', '=', 'extra_activity_payments.society_flat_id')
+            ->join('society_wings', 'society_wings.id', '=', 'society_flats.society_wing_id')
+            ->with('flat.wing:id,code,label')
+            ->orderBy('society_wings.sort_order')
+            ->orderBy('society_flats.floor_number')
+            ->orderBy('society_flats.flat_index')
+            ->select('extra_activity_payments.*');
+
+        if ($status !== 'all') {
+            $query->where('extra_activity_payments.status', $status);
+        }
+
+        return $query;
     }
 
     private function syncMissingFlatRows(ExtraActivity $activity): void

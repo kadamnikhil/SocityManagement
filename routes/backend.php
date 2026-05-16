@@ -53,6 +53,9 @@ Route::middleware(['auth', 'admin', 'preventBackHistory'])->group(function () {
         // Maintenance collection by month/year
         Route::get('maintenance', [MaintenanceController::class, 'index'])->name('maintenance.index');
         Route::post('maintenance', [MaintenanceController::class, 'store'])->name('maintenance.store');
+        Route::get('maintenance/{maintenance}/pdf/{list}', [MaintenanceController::class, 'downloadListPdf'])
+            ->where('list', 'paid|unpaid')
+            ->name('maintenance.pdf-list');
         Route::get('maintenance/{maintenance}', [MaintenanceController::class, 'show'])->name('maintenance.show');
         Route::delete('maintenance/{maintenance}', [MaintenanceController::class, 'destroy'])->name('maintenance.destroy');
         Route::patch('maintenance/{maintenance}/payments/{payment}', [MaintenanceController::class, 'updateStatus'])->name('maintenance.payments.update');
@@ -60,6 +63,9 @@ Route::middleware(['auth', 'admin', 'preventBackHistory'])->group(function () {
         // Extra activity collections, not tied to month/year
         Route::get('extra-activities', [ExtraActivityController::class, 'index'])->name('extra-activities.index');
         Route::post('extra-activities', [ExtraActivityController::class, 'store'])->name('extra-activities.store');
+        Route::get('extra-activities/{extraActivity}/pdf/{list}', [ExtraActivityController::class, 'downloadListPdf'])
+            ->where('list', 'paid|unpaid')
+            ->name('extra-activities.pdf-list');
         Route::get('extra-activities/{extraActivity}', [ExtraActivityController::class, 'show'])->name('extra-activities.show');
         Route::delete('extra-activities/{extraActivity}', [ExtraActivityController::class, 'destroy'])->name('extra-activities.destroy');
         Route::patch('extra-activities/{extraActivity}/payments/{payment}', [ExtraActivityController::class, 'updateStatus'])->name('extra-activities.payments.update');

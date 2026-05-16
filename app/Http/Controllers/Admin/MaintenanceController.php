@@ -7,8 +7,12 @@ use App\Models\MaintenancePayment;
 use App\Models\MaintenancePeriod;
 use App\Models\SocietyFlat;
 use App\Models\SocietyWing;
+use Dompdf\Dompdf;
+use Dompdf\Options;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
@@ -121,23 +125,7 @@ class MaintenanceController extends Controller
             $status = 'all';
         }
 
-        $this->syncMissingFlatRows($maintenance);
-
-        $query = MaintenancePayment::query()
-            ->where('maintenance_period_id', $maintenance->id)
-            ->join('society_flats', 'society_flats.id', '=', 'maintenance_payments.society_flat_id')
-            ->join('society_wings', 'society_wings.id', '=', 'society_flats.society_wing_id')
-            ->with('flat.wing:id,code,label')
-            ->orderBy('society_wings.sort_order')
-            ->orderBy('society_flats.floor_number')
-            ->orderBy('society_flats.flat_index')
-            ->select('maintenance_payments.*');
-
-        if ($status !== 'all') {
-            $query->where('maintenance_payments.status', $status);
-        }
-
-        $payments = $query->get();
+        $payments = $this->maintenancePaymentsForPeriod($maintenance, $status)->get();
         $stats = $this->periodStats($maintenance);
         $wings = SocietyWing::query()
             ->where('user_id', $maintenance->user_id)
@@ -156,6 +144,42 @@ class MaintenanceController extends Controller
             'status',
             'wings'
         ));
+    }
+
+    public function downloadListPdf(Request $request, MaintenancePeriod $maintenance, string $list): Response
+    {
+        $this->authorizePeriod($request, $maintenance);
+        if (! in_array($list, [MaintenancePayment::STATUS_PAID, MaintenancePayment::STATUS_UNPAID], true)) {
+            abort(404);
+        }
+
+        $payments = $this->maintenancePaymentsForPeriod($maintenance, $list)->get();
+        $listLabel = $list === MaintenancePayment::STATUS_PAID ? 'Paid' : 'Unpaid';
+
+        $maintenance->loadMissing('user');
+        $societyName = trim((string) ($maintenance->user?->society_name ?? $request->user()->society_name));
+
+        $html = view('Admin.Maintenance.pdf-list', [
+            'maintenance' => $maintenance,
+            'payments' => $payments,
+            'listLabel' => $listLabel,
+            'societyName' => $societyName,
+            'brandName' => 'Society Management System',
+        ])->render();
+
+        $options = new Options;
+        $options->set('isRemoteEnabled', false);
+        $dompdf = new Dompdf($options);
+        $dompdf->loadHtml($html, 'UTF-8');
+        $dompdf->setPaper('A4', 'landscape');
+        $dompdf->render();
+
+        $filename = sprintf('maintenance-%d-%02d-%s.pdf', $maintenance->year, $maintenance->month, $list);
+
+        return response($dompdf->output(), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
+        ]);
     }
 
     public function updateStatus(Request $request, MaintenancePeriod $maintenance, MaintenancePayment $payment): RedirectResponse
@@ -231,6 +255,27 @@ class MaintenanceController extends Controller
         return redirect()
             ->route('admin.maintenance.index')
             ->with('success', 'Maintenance data for '.$label.' deleted.');
+    }
+
+    private function maintenancePaymentsForPeriod(MaintenancePeriod $maintenance, string $status): Builder
+    {
+        $this->syncMissingFlatRows($maintenance);
+
+        $query = MaintenancePayment::query()
+            ->where('maintenance_period_id', $maintenance->id)
+            ->join('society_flats', 'society_flats.id', '=', 'maintenance_payments.society_flat_id')
+            ->join('society_wings', 'society_wings.id', '=', 'society_flats.society_wing_id')
+            ->with('flat.wing:id,code,label')
+            ->orderBy('society_wings.sort_order')
+            ->orderBy('society_flats.floor_number')
+            ->orderBy('society_flats.flat_index')
+            ->select('maintenance_payments.*');
+
+        if ($status !== 'all') {
+            $query->where('maintenance_payments.status', $status);
+        }
+
+        return $query;
     }
 
     private function syncMissingFlatRows(MaintenancePeriod $period): void

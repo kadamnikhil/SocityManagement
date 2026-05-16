@@ -260,6 +260,12 @@
                                             <a href="{{ route('admin.extra-activities.show', [$activity, 'status' => 'unpaid']) }}" class="btn btn-outline-warning btn-sm">
                                                 <i class="ti ti-alert-circle me-1"></i> Unpaid
                                             </a>
+                                            <a href="{{ route('admin.extra-activities.pdf-list', [$activity, 'paid']) }}" class="btn btn-outline-success btn-sm text-nowrap">
+                                                <i class="ti ti-file-download me-1"></i> Paid PDF
+                                            </a>
+                                            <a href="{{ route('admin.extra-activities.pdf-list', [$activity, 'unpaid']) }}" class="btn btn-outline-secondary btn-sm text-nowrap">
+                                                <i class="ti ti-file-download me-1"></i> Unpaid PDF
+                                            </a>
                                             <form method="POST" action="{{ route('admin.extra-activities.destroy', $activity) }}" onsubmit="return confirm('Delete this extra activity and all payment entries?');">
                                                 @csrf
                                                 @method('DELETE')

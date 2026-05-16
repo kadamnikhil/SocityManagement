@@ -41,7 +41,7 @@ class SocietySetupController extends Controller
         $validated = $request->validate([
             'owner_name' => ['nullable', 'string', 'max:255'],
             'owner_mobile' => ['nullable', 'string', 'max:32', 'regex:/^[\d\s+().-]*$/'],
-            'owner_email' => ['nullable', 'string', 'lowercase', 'email', 'max:255'],
+            'owner_email' => ['nullable', 'string', 'email', 'max:255'],
             'vehicles_2w' => ['nullable', 'integer', 'min:0', 'max:99'],
             'vehicles_3w' => ['nullable', 'integer', 'min:0', 'max:99'],
             'vehicles_4w' => ['nullable', 'integer', 'min:0', 'max:99'],

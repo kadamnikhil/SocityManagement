@@ -276,6 +276,12 @@
                                             <a href="{{ route('admin.maintenance.show', [$period, 'status' => 'unpaid']) }}" class="btn btn-outline-warning btn-sm text-nowrap">
                                                 Unpaid
                                             </a>
+                                            <a href="{{ route('admin.maintenance.pdf-list', [$period, 'paid']) }}" class="btn btn-outline-success btn-sm text-nowrap">
+                                                <i class="ti ti-file-download me-1"></i> Paid PDF
+                                            </a>
+                                            <a href="{{ route('admin.maintenance.pdf-list', [$period, 'unpaid']) }}" class="btn btn-outline-secondary btn-sm text-nowrap">
+                                                <i class="ti ti-file-download me-1"></i> Unpaid PDF
+                                            </a>
                                             <form method="POST" action="{{ route('admin.maintenance.destroy', $period) }}" onsubmit="return confirm('Delete all maintenance data for {{ $period->label }}? This cannot be undone.');">
                                                 @csrf
                                                 @method('DELETE')

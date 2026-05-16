@@ -84,6 +84,7 @@ class PermissionSeeder extends Seeder
                 'extra-activity-view' => [
                     'index',
                     'show',
+                    'downloadListPdf'
                 ],
                 'extra-activity-manage' => [
                     'store',
@@ -98,6 +99,7 @@ class PermissionSeeder extends Seeder
                 'maintenance-view' => [
                     'index',
                     'show',
+                    'downloadListPdf',
                 ],
                 'maintenance-manage' => [
                     'store',
